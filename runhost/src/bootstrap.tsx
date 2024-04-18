@@ -2,9 +2,9 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
-import { FederationRuntimePlugin, init, loadRemote } from "@module-federation/enhanced/runtime";
+import { init, loadRemote } from "@module-federation/enhanced/runtime";
 
-const runtimePlugin: () => FederationRuntimePlugin = function () {
+const runtimePlugin: () => any = function () {
   return {
     name: "my-runtime-plugin",
     beforeInit(args) {
@@ -16,22 +16,22 @@ const runtimePlugin: () => FederationRuntimePlugin = function () {
       return args;
     },
 
-    // loadRemoteSnapshot(args) {
-    //   console.log("loadRemoteSnapshot: ", args);
-    // if (args.manifestJson && (args.manifestJson.metaData as any).publicPath.includes("placeholder")) {
-    //   (args.manifestJson.metaData as any).publicPath = (args.manifestJson.metaData as any).publicPath.replace(
-    //     "placeholder",
-    //     args.manifestUrl?.split("/")[2].split(":")[0],
-    //   );
-    // }
-    // if ((args.remoteSnapshot as any).publicPath.includes("placeholder")) {
-    //   (args.remoteSnapshot as any).publicPath = (args.remoteSnapshot as any).publicPath.replace(
-    //     "placeholder",
-    //     args.manifestUrl?.split("/")[2].split(":")[0],
-    //   );
-    // }
-    //   return args;
-    //},
+    loadRemoteSnapshot(args) {
+      console.log("loadRemoteSnapshot: ", args);
+      if (args.manifestJson && (args.manifestJson.metaData as any).publicPath.includes("placeholder")) {
+        (args.manifestJson.metaData as any).publicPath = (args.manifestJson.metaData as any).publicPath.replace(
+          "placeholder",
+          args.manifestUrl?.split("/")[2].split(":")[0],
+        );
+      }
+      if ((args.remoteSnapshot as any).publicPath.includes("placeholder")) {
+        (args.remoteSnapshot as any).publicPath = (args.remoteSnapshot as any).publicPath.replace(
+          "placeholder",
+          args.manifestUrl?.split("/")[2].split(":")[0],
+        );
+      }
+      return args;
+    },
 
     afterResolve(args) {
       console.log("afterResolve", args);
@@ -49,19 +49,19 @@ const runtimePlugin: () => FederationRuntimePlugin = function () {
       console.log("beforeloadShare:", args);
       return args;
     },
-    // async initContainer(args) {
-    //  console.log("initContainer: ", args);
-    // args.origin.snapshotHandler.manifestCache.forEach((manifest, index) => {
-    //   console.log(args);
-    //   manifest.metaData.publicPath = manifest.metaData.publicPath.replace(
-    //     "placeholder",
-    //     args.remoteInfo.entry.split("/")[2].split(":")[0],
-    //   );
-    //   console.log("manifest: ", manifest);
-    // });
-    // console.log("args after", args);
-    //return args;
-    //},
+    async initContainer(args) {
+      console.log("initContainer: ", args);
+      args.origin.snapshotHandler.manifestCache.forEach((manifest, index) => {
+        console.log(args);
+        manifest.metaData.publicPath = manifest.metaData.publicPath.replace(
+          "placeholder",
+          args.remoteInfo.entry.split("/")[2].split(":")[0],
+        );
+        console.log("manifest: ", manifest);
+      });
+      console.log("args after", args);
+      return args;
+    },
   };
 };
 

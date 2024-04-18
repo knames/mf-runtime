@@ -42,7 +42,7 @@ module.exports = {
   output: {
     path: __dirname + "/dist",
     uniqueName: name1,
-    publicPath: "http://localhost:3001/",
+    publicPath: "http://placeholder:3001/",
     filename: "[name].js",
   },
   watch: true,
