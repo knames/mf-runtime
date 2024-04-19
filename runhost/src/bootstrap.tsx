@@ -2,64 +2,104 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
-import { init, loadRemote } from "@module-federation/enhanced/runtime";
+import { FederationHost, FederationRuntimePlugin, init, loadRemote } from "@module-federation/enhanced/runtime";
+import { Remote, RemoteInfo, ShareInfos } from "@module-federation/runtime/dist/src/type/index";
+import { ModuleInfo } from "@module-federation/sdk/dist/src/types/index";
 
-const runtimePlugin: () => any = function () {
+interface FederationRuntimeOptions {
+  id?: string;
+  name: string;
+  version?: string;
+  remotes: Array<Remote>;
+  shared: ShareInfos;
+  plugins: Array<FederationRuntimePlugin>;
+  inBrowser: boolean;
+}
+
+type AfterResolveOptions = {
+  id: string;
+  pkgNameOrAlias: string;
+  expose: string;
+  remote: Remote;
+  options: FederationRuntimeOptions;
+  origin: FederationHost;
+  remoteInfo: RemoteInfo;
+  remoteSnapshot?: ModuleInfo;
+};
+
+type BeforeRequestOptions = {
+  id: string;
+  options: FederationRuntimeOptions;
+  origin: FederationHost;
+};
+
+type InitOptions = {
+  options: FederationRuntimeOptions;
+  origin: FederationHost;
+};
+
+const runtimePlugin = (): FederationRuntimePlugin => {
   return {
     name: "my-runtime-plugin",
     beforeInit(args) {
       console.log("beforeInit: ", args);
       return args;
     },
-    beforeRequest(args) {
+    init(args: InitOptions) {
+      return args;
+    },
+    async beforeRequest(args: BeforeRequestOptions): Promise<BeforeRequestOptions> {
       console.log("beforeRequest: ", args);
+      // manifestCache isn't populated by this point
+      // args.origin.snapshotHandler.manifestCache.forEach((value, key) => {
+      //   console.log("manifestCache: ", key, value);
+      // });
       return args;
     },
 
     loadRemoteSnapshot(args) {
       console.log("loadRemoteSnapshot: ", args);
-      if (args.manifestJson && (args.manifestJson.metaData as any).publicPath.includes("placeholder")) {
-        (args.manifestJson.metaData as any).publicPath = (args.manifestJson.metaData as any).publicPath.replace(
-          "placeholder",
-          args.manifestUrl?.split("/")[2].split(":")[0],
-        );
-      }
-      if ((args.remoteSnapshot as any).publicPath.includes("placeholder")) {
-        (args.remoteSnapshot as any).publicPath = (args.remoteSnapshot as any).publicPath.replace(
-          "placeholder",
-          args.manifestUrl?.split("/")[2].split(":")[0],
-        );
-      }
       return args;
     },
 
-    afterResolve(args) {
+    async afterResolve(args: AfterResolveOptions): Promise<AfterResolveOptions> {
       console.log("afterResolve", args);
+      args.origin.snapshotHandler.manifestCache.forEach((value: any, key) => {
+        console.log("manifestCache: ", key, value);
+        if (value.metaData.publicPath.includes("placeholder")) {
+          value.metaData.publicPath = value.metaData.publicPath.replace("placeholder", "localhost");
+          console.log(value);
+        }
+      });
+      if (args.remoteInfo.entry.includes("placeholder")) {
+        args.remoteInfo.entry = args.remoteInfo.entry.replace("placeholder", "localhost");
+      }
+
+      console.log("args post replace: ", args);
+      return args;
+    },
+    handlePreloadModule(args) {
+      console.log("handlePreloadModule: ", args);
+      // args.remote.entry = 'http://localhost:3001/mf-manifest.json';
+      args.remoteSnapshot.publicPath = "http://localhost:3001/";
+      // console.log('newArgs: ', args);
       return args;
     },
     onLoad(args) {
       console.log("onLoad: ", args);
       return args;
     },
-    async loadShare(args) {
-      console.log("loadShare:", args);
+
+    async initContainer(args) {
+      console.log("initcontainer: ", args);
       return args;
     },
+    // async loadShare(args) {
+    //   console.log("loadShare:", args);
+    //   return args;
+    // },
     async beforeLoadShare(args) {
       console.log("beforeloadShare:", args);
-      return args;
-    },
-    async initContainer(args) {
-      console.log("initContainer: ", args);
-      args.origin.snapshotHandler.manifestCache.forEach((manifest, index) => {
-        console.log(args);
-        manifest.metaData.publicPath = manifest.metaData.publicPath.replace(
-          "placeholder",
-          args.remoteInfo.entry.split("/")[2].split(":")[0],
-        );
-        console.log("manifest: ", manifest);
-      });
-      console.log("args after", args);
       return args;
     },
   };
@@ -68,7 +108,7 @@ const runtimePlugin: () => any = function () {
 export async function renderApp() {
   init({
     name: "runhost",
-    remotes: [{ name: "@app_02", entry: "http://localhost:3001/mf-manifest.json", alias: "a2" }],
+    remotes: [{ name: "app_02", entry: "http://localhost:3001/mf-manifest.json", alias: "a2" }],
     plugins: [runtimePlugin()],
   });
 
