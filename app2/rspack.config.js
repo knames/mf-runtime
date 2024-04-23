@@ -43,7 +43,8 @@ module.exports = {
   output: {
     path: __dirname + "/dist",
     uniqueName: name1,
-    publicPath: "http://placeholder:3001/",
+    // publicPath: "http://placeholder:3001/",
+    publicPath: "/",
     filename: "[name].js",
   },
   watch: true,
@@ -105,19 +106,20 @@ module.exports = {
         "./pi": "./src/pi.ts",
       },
       manifest: true,
+      dts: false,
       runtimePlugins: [path.resolve(__dirname, "./src/myplugin.ts")],
-      // shared: {
-      //   ...deps,
-      //   "react-router-dom": {
-      //     singleton: true,
-      //   },
-      //   "react-dom": {
-      //     singleton: true,
-      //   },
-      //   react: {
-      //     singleton: true,
-      //   },
-      // },
+      shared: {
+        // ...deps,
+        // "react-router-dom": {
+        //   singleton: true,
+        // },
+        "react-dom": {
+          singleton: true,
+        },
+        react: {
+          singleton: true,
+        },
+      },
     }),
     isDev ? new refreshPlugin() : null,
   ].filter(Boolean),

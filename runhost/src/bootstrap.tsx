@@ -41,65 +41,13 @@ type InitOptions = {
 const runtimePlugin = (): FederationRuntimePlugin => {
   return {
     name: "my-runtime-plugin",
-    beforeInit(args) {
-      console.log("beforeInit: ", args);
-      return args;
-    },
-    init(args: InitOptions) {
-      return args;
-    },
-    async beforeRequest(args: BeforeRequestOptions): Promise<BeforeRequestOptions> {
-      console.log("beforeRequest: ", args);
-      // manifestCache isn't populated by this point
-      // args.origin.snapshotHandler.manifestCache.forEach((value, key) => {
-      //   console.log("manifestCache: ", key, value);
-      // });
-      return args;
-    },
-
-    loadRemoteSnapshot(args) {
-      console.log("loadRemoteSnapshot: ", args);
-      return args;
-    },
-
-    async afterResolve(args: AfterResolveOptions): Promise<AfterResolveOptions> {
-      console.log("afterResolve", args);
-      args.origin.snapshotHandler.manifestCache.forEach((value: any, key) => {
-        console.log("manifestCache: ", key, value);
-        if (value.metaData.publicPath.includes("placeholder")) {
-          value.metaData.publicPath = value.metaData.publicPath.replace("placeholder", "localhost");
-          console.log(value);
-        }
-      });
-      if (args.remoteInfo.entry.includes("placeholder")) {
-        args.remoteInfo.entry = args.remoteInfo.entry.replace("placeholder", "localhost");
-      }
-
-      console.log("args post replace: ", args);
-      return args;
-    },
     handlePreloadModule(args) {
-      console.log("handlePreloadModule: ", args);
-      // args.remote.entry = 'http://localhost:3001/mf-manifest.json';
-      args.remoteSnapshot.publicPath = "http://localhost:3001/";
-      // console.log('newArgs: ', args);
+      args.remote.entry = 'http://localhost:3001/mf-manifest.json';
+      args.remoteSnapshot.publicPath = 'http://localhost:3001/';
       return args;
     },
-    onLoad(args) {
-      console.log("onLoad: ", args);
-      return args;
-    },
-
-    async initContainer(args) {
-      console.log("initcontainer: ", args);
-      return args;
-    },
-    // async loadShare(args) {
-    //   console.log("loadShare:", args);
-    //   return args;
-    // },
-    async beforeLoadShare(args) {
-      console.log("beforeloadShare:", args);
+    async afterResolve(args: AfterResolveOptions): Promise<AfterResolveOptions> {
+      args.remoteInfo.entry = 'http://localhost:3001/remoteEntry.js';
       return args;
     },
   };
@@ -112,7 +60,7 @@ export async function renderApp() {
     plugins: [runtimePlugin()],
   });
 
-  loadRemote("a2/pi").then((module) => {
+  loadRemote("app_02/pi").then((module) => {
     console.log("results from pi in app02: ", (module as any).default());
   });
   ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
