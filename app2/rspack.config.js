@@ -5,7 +5,8 @@ const isDev = process.env.NODE_ENV === "development";
 const path = require("path");
 const deps = require("./package.json").dependencies;
 console.log({ deps });
-const { ModuleFederationPlugin } = require("@module-federation/enhanced/rspack");
+const { ModuleFederationPlugin, } = require("@module-federation/enhanced/rspack");
+
 
 const name = "app_02";
 const name1 = name + "1";
@@ -42,7 +43,8 @@ module.exports = {
   output: {
     path: __dirname + "/dist",
     uniqueName: name1,
-    publicPath: "http://localhost:3001/",
+    // publicPath: "http://placeholder:3001/",
+    publicPath: "/",
     filename: "[name].js",
   },
   watch: true,
@@ -104,18 +106,20 @@ module.exports = {
         "./pi": "./src/pi.ts",
       },
       manifest: true,
-      // shared: {
-      //   ...deps,
-      //   "react-router-dom": {
-      //     singleton: true,
-      //   },
-      //   "react-dom": {
-      //     singleton: true,
-      //   },
-      //   react: {
-      //     singleton: true,
-      //   },
-      // },
+      dts: false,
+      runtimePlugins: [path.resolve(__dirname, "./src/myplugin.ts")],
+      shared: {
+        // ...deps,
+        // "react-router-dom": {
+        //   singleton: true,
+        // },
+        "react-dom": {
+          singleton: true,
+        },
+        react: {
+          singleton: true,
+        },
+      },
     }),
     isDev ? new refreshPlugin() : null,
   ].filter(Boolean),
