@@ -1,11 +1,12 @@
 const rspack = require("@rspack/core");
 const refreshPlugin = require("@rspack/plugin-react-refresh");
 const isDev = process.env.NODE_ENV === "development";
+const { ModuleFederationPlugin } = require("@module-federation/enhanced/rspack");
 
 const path = require("path");
 const deps = require("./package.json").dependencies;
-console.log({ deps });
-const { ModuleFederationPlugin } = require("@module-federation/enhanced/rspack");
+const HTTPS = process.env.HTTPS ?? null;
+
 
 const name = "runhost";
 const name1 = name + "1";
@@ -26,6 +27,9 @@ module.exports = {
   devServer: {
     port: 3000,
     hot: true,
+    client: {
+      webSocketURL:`ws${HTTPS ? 's' : ''}://localhost:3000/ws`,
+    },
     static: {
       directory: path.join(__dirname, "build"),
     },
@@ -42,10 +46,14 @@ module.exports = {
   output: {
     path: __dirname + "/dist",
     uniqueName: name1,
-    publicPath: "http://localhost:3000/",
+    publicPath: "auto",
     filename: "[name].js",
   },
   watch: true,
+  watchOptions: {
+      ignored: /node_modules/,
+      poll: 500,
+  },
   module: {
     rules: [
       {
@@ -103,8 +111,8 @@ module.exports = {
       //   remotes: {
       //    app_02: "app_02@http://localhost:3001/mf-manifest.json",
       // },
-
       shared: ["react", "react-dom"],
+      dts: false,
     }),
     isDev ? new refreshPlugin() : null,
   ].filter(Boolean),

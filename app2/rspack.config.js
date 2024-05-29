@@ -1,12 +1,11 @@
 const rspack = require("@rspack/core");
 const refreshPlugin = require("@rspack/plugin-react-refresh");
 const isDev = process.env.NODE_ENV === "development";
+const { ModuleFederationPlugin, } = require("@module-federation/enhanced/rspack");
 
 const path = require("path");
 const deps = require("./package.json").dependencies;
-console.log({ deps });
-const { ModuleFederationPlugin, } = require("@module-federation/enhanced/rspack");
-
+const HTTPS = process.env.HTTPS ?? null;
 
 const name = "app_02";
 const name1 = name + "1";
@@ -29,6 +28,9 @@ module.exports = {
   devServer: {
     port: 3001,
     hot: true,
+    client: {
+      webSocketURL:`ws${HTTPS ? 's' : ''}://localhost:3001/ws`,
+    },
     static: {
       directory: path.join(__dirname, "build"),
     },
@@ -43,11 +45,15 @@ module.exports = {
   output: {
     path: __dirname + "/dist",
     uniqueName: name1,
-    // publicPath: "http://placeholder:3001/",
-    publicPath: "/",
+    // publicPath: "http://localhost:3001/",
+    publicPath: "auto",
     filename: "[name].js",
   },
   watch: true,
+  watchOptions: {
+    ignored: /node_modules/,
+    poll: 500,
+  },
   module: {
     rules: [
       {
@@ -105,9 +111,11 @@ module.exports = {
         "./Hello": "./src/Hello.tsx",
         "./pi": "./src/pi.ts",
       },
-      manifest: true,
+      manifest: {
+        fileName: "mf-manifest.json",
+      },
       dts: false,
-      runtimePlugins: [path.resolve(__dirname, "./src/myplugin.ts")],
+      // runtimePlugins: [path.resolve(__dirname, "./src/myplugin.ts")],
       shared: {
         // ...deps,
         // "react-router-dom": {

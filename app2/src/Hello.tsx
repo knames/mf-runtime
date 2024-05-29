@@ -3,5 +3,5 @@ interface Props {
 }
 
 export const Hello = ({ name }: Props) => {
-  return <div>Hello, from app_02, {name}!</div>;
+  return <div>Hello, 1, {name}!</div>;
 };
